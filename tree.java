@@ -3,7 +3,7 @@
 //tree has 2 subclasses branch and leaf
 abstract class tree {
 	//get a possible tree
-	public static byte[] get_initial_tree(int[8][8] MT_forbidden, int[3][] MT_too_near) {
+	public static byte[] get_initial_tree(int[][] MT_forbidden, int[][] MT_too_near) {
 		byte[] MT_pairs = {1, 2, 3, 4, 5, 6, 7, 8};								///array[machine # -1] = task #)
 		byte[] MT_sequence = {1, 1, 1, 1, 1, 1, 1, 1};
 		while (cost_of_pairs(MT_pairs, MT_forbidden, MT_too_near) == -1) {		//-1 indicates a forbidden pairing
@@ -15,27 +15,27 @@ abstract class tree {
 	
 	//finds next sequence array to be attempted as a solution (returns array where array[machine # -1] = task numbered from list 1 through (9-machine #))
 	//*********************should throw no_valid_assignments_exception if all possible pairings have been tried (not implemented)*********************
-	private byte[] increment_sequence(byte[] MT_sequence, byte start_position) {
+	private static byte[] increment_sequence(byte[] MT_sequence, int start_position) {
 		/*if (start_position == 7) {
 			throw no_valid_assignments_exception;
 		}*/
-		if (MT_sequence(start_position) == 8-start_position) {
-			MT_sequence(start_position) = 1;
+		if (MT_sequence[start_position] == 8-start_position) {
+			MT_sequence[start_position] = 1;
 			MT_sequence = increment_sequence(MT_sequence, start_position + 1);
 		}
 		else {
-			MT_sequence(start_position) += 1;
+			MT_sequence[start_position] += 1;
 		}
 		return MT_sequence;
 	}
 	
 	//takes the sequence array and gives back the paired task for each machine (returns array where array[machine # -1] = task #)
-	private byte[] get_pairs(byte[] MT_sequence) {
+	private static byte[] get_pairs(byte[] MT_sequence) {
 		byte[] MT_pairs = new byte[8];
-		byte[][] remaining_tasks = new byte[8][8];
-		remaining_tasks[0] = {1, 2, 3, 4, 5, 6, 7, 8};
-		for (i=1; i<8; i++) {
-			for (j=0; j<8-i; j++) {
+		//byte[][] remaining_tasks = new byte[8][8];
+		byte[][] remaining_tasks = {{1, 2, 3, 4, 5, 6, 7, 8}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0} };
+		for (int i=1; i<8; i++) {
+			for (int j=0; j<8-i; j++) {
 				if (MT_sequence[i] != j+1) {
 					remaining_tasks[i][j] = remaining_tasks[i-1][j];
 				}
@@ -48,9 +48,9 @@ abstract class tree {
 	}
 	
 	//returns total cost of current pairing given cost per machine for task and too near task list (each should hold value -1 to indicate forbidden)
-	private int cost_of_pairs(byte[8] MT_pairs, int[8][8] MT_forbidden, int[][3] MT_too_near) {
+	private static int cost_of_pairs(byte[] MT_pairs, int[][] MT_forbidden, int[][] MT_too_near) {
 		int cost = 0;
-		for (i=0; i<8; i++;) {
+		for (int i=0; i<8; i++) {
 			if (MT_forbidden[i][MT_pairs[i]] == -1) {
 				cost = -1;
 				break;
@@ -59,14 +59,14 @@ abstract class tree {
 				cost += MT_forbidden[i][MT_pairs[i]];
 			}
 		}
-		for (i=0; i<MT_too_near.length; i++;) {
+		for (int i=0; i<MT_too_near.length; i++) {
 			if (cost == -1) {
 				break;
 			}
-			if (MT_too_near[2] == -1) {
-				for (j=0; j<8; j++;) {
+			if (MT_too_near[i][2] == -1) {
+				for (int j=0; j<8; j++) {
 					if (j==7) {
-						if (MT_pairs[0] == MT_too_near[i][0] && MT_pairs[7] == MT_too_near[i][1] && MT_too_near[i][2]) {
+						if (MT_pairs[0] == MT_too_near[i][0] && MT_pairs[7] == MT_too_near[i][1] && MT_too_near[i][2] == -1) {
 							cost = -1;
 							break;
 						}
@@ -75,7 +75,7 @@ abstract class tree {
 						}
 					}
 					else {
-						if (MT_pairs[j] == MT_too_near[0] && MT_pairs[j+1] == MT_too_near[1] && MT_too_near[i][2]) {
+						if (MT_pairs[j] == MT_too_near[i][0] && MT_pairs[j+1] == MT_too_near[i][1] && MT_too_near[i][2] == -1) {
 							cost = -1;
 							break;
 						}
