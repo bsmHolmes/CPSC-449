@@ -16,17 +16,24 @@ public class FileHandler {
 	//name
 	private String name;
 	
-	//forced PA: array of pairs
-	private Pair[] fpa;
 	
+	//to 8x8
+	//forced PA: array of pairs
+	private Triple[] fpa;
+	//to 8x8
 	// forbidden machine: array of pairs
 	private Pair[] fm;
 	
 	//too-near tasks
-	private Pair[] tnt;
+	private Triple[] tnt;
 	
 	// too near penalties: array of triples
 	private Triple[] tnp;
+	
+	
+	//this will be the triple that contains both TNT & TNP, to be passed to the tree
+	private Triple[] trip;
+	
 	
 	
 	//loads all data into the various data types that 
@@ -37,11 +44,12 @@ public class FileHandler {
 	//
    public void loadData(String filePath)
    {
-	   fpa = new Pair[0];
+	   fpa = new Triple[0];
 	   fm = new Pair[0];
-	   tnt = new Pair[0];
+	   tnt = new Triple[0];
 	   tnp = new Triple[0];
 	   mp = new int[8][8];
+	   
 	   
        try
 	   {
@@ -85,7 +93,7 @@ public class FileHandler {
 				    		   {
 			    				   System.out.println(i + ": " + x);
 				    		   }
-			    			   fpa = addPair(fpa, x);;
+			    			   fpa = addTriple2(fpa, x);;
 				    		   i++;
 			    		   }
 
@@ -129,7 +137,7 @@ public class FileHandler {
 				    		   {
 			    				   System.out.println(i + ": " + x);
 				    		   }
-			    			   tnt = addPair(tnt, x);
+			    			   tnt = addTriple2(tnt, x);
 				    		   i++;
 			    		   }
 
@@ -190,9 +198,13 @@ public class FileHandler {
 	       }
 	       
 	       
-	       
+
 	       in.close();
-	       System.out.println("done!");
+	       if (feedback == 1)
+	       {
+	    	   System.out.println("done!");
+	       }
+	       
 	       
 	   }
        catch(NullPointerException e)
@@ -217,6 +229,9 @@ public class FileHandler {
 		   System.out.println("File read successfully! \n\n");
 	   }
        
+	   trip = concat(tnt, tnp);
+	   prepareArray();
+	   
        if (debug == 2)
        {
     	   System.out.println("****************************************Data read from file**********************************************");
@@ -226,7 +241,11 @@ public class FileHandler {
     	   printTNT();
     	   printMP();
     	   printTNP();
-    	   
+	       
+	       printTrip();
+	       
+	       
+	       printMP();
     	   
     	   
     	   
@@ -304,6 +323,109 @@ public class FileHandler {
 	   return(tempTrip);
 	   
    }
+   //for fpa and tnt
+   public Triple[] addTriple2(Triple[] current, String triple)
+   {
+	   char c1 = ' ';
+	   char c2 = ' ';
+	   int c3 = 0;
+	   //grab tasks
+	   c1 = triple.charAt(1);
+	   c2 = triple.charAt(4);
+	   //remove all non digits
+	   
+	   int currentSize = current.length;
+	   
+	   int newSize = currentSize + 1;
+	   Triple[] tempTrip = new Triple[newSize];
+	   
+	   for (int i = 0; i < currentSize; i++)
+	   {
+		   tempTrip[i] = current[i];
+	   }
+	   tempTrip[newSize - 1] = new Triple(c1, c2, -1);
+	  
+	   return(tempTrip);
+	   
+   }
+   
+   public Triple[] concat(Triple[] tnt, Triple[] tnp )
+   {
+	   int len = tnt.length + tnp.length;
+	   Triple[] temp = new Triple[len];
+	   int i = 0;
+	   int j = 0;
+	   while(i < tnt.length)
+	   {
+		   temp[j] = tnt[i];
+		   i++;
+		   j++;
+	   }
+	   i = 0;
+	   while(i < tnp.length)
+	   {
+		   temp[j] = tnp[i];
+		   i++;
+		   j++;
+	   }
+	   return(temp);
+	   
+   }
+   //this will take the 
+   public void prepareArray()
+   {
+	   //first we will deal will forced partial assignments
+	   //we need to make sure no other machine can be assigned to this task and no task to this machine
+	   //therefore we will substitute a -1 in the array where this is true
+	   int len = fpa.length;
+	   for (int l = 0; l < len; l++)
+	   {
+		   //column
+		   int i = 0;
+		   //row
+		   int j = 0;
+		   //-1 because array starts at 0
+		   //must cast to int before use
+		   int m = (int) fpa[l].getFirstChar() - 49;
+		   int t = (int) fpa[l].getSecondChar() - 65;
+		   
+		   System.out.println(m);
+		   System.out.println(m);
+		   while(j < 8)
+		   {
+			   // if the machine task pair is in this row then make entire row -1 except for m/t pair
+			   if (j == m)
+			   {
+				   while(i < 8)
+				   {
+					   if (i == t)
+					   {
+						   i++;
+					   }
+					   else
+					   {
+						   mp[j][i] = -1;
+						   i++;
+					   }
+					   
+				   }
+				   i = 0;
+				   j++;
+			   }
+			   else
+			   {
+				   mp[j][t] = -1;
+				   j++;
+			   }
+		   }
+		    
+		   
+	   }
+	   
+   }
+   
+
+	   
    //*****************************************************accessors and mutators********************************************************
    
   
@@ -335,7 +457,7 @@ public class FileHandler {
    }
    
    //too-near tasks
-   public Pair[] getTNT()
+   public Triple[] getTNT()
    {
 	   return(tnt);
    }
@@ -369,7 +491,7 @@ public class FileHandler {
    }
    
    //forced partial assignment
-   public Pair[] getFPA()
+   public Triple[] getFPA()
    {
 	   return(fpa);
    }
@@ -397,8 +519,24 @@ public class FileHandler {
 		   int len2 = mp[i].length;
 		   for(int j = 0; j<len2; j++)
 		   {
-			   System.out.print(mp[i][j]);
-			   System.out.print(" ");
+			   if (mp[i][j] == -1)
+			   {
+				   System.out.print(mp[i][j]);
+				   System.out.print("  ");
+			   }
+			   else if(mp[i][j] >= 10)
+			   {
+				   System.out.print(" ");
+				   System.out.print(mp[i][j]);
+				   System.out.print(" ");
+			   }
+			   else
+			   {
+				   System.out.print(" ");
+				   System.out.print(mp[i][j]);
+				   System.out.print("  ");
+			   }
+
 		   }
 		   System.out.println("");
 	   }
@@ -413,6 +551,22 @@ public class FileHandler {
 	   printTNT();
 	   printMP();
 	   printTNP();
+   }
+   //This is the triple that will be passed to the tree function
+   public Triple[] getTrip()
+   {
+	   return(trip);
+   }
+   
+   public void printTrip()
+   {
+	   System.out.println("Triple to be used:");
+	   int len = trip.length;
+	   for(int i = 0; i < len; i++)
+	   {
+		   System.out.println(trip[i]);
+	   }
+	   System.out.println("");
    }
    
    
