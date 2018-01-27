@@ -2,6 +2,29 @@
 
 //tree has 2 subclasses branch and leaf
 abstract class tree {
+	public static byte[] get_best_tree_slow(int[][] MT_penalties, int[][] MT_too_near) {
+		byte[] MT_pairs = {1, 2, 3, 4, 5, 6, 7, 8};								///array[machine # -1] = task #)
+		byte[] MT_sequence = {1, 1, 1, 1, 1, 1, 1, 1};
+		byte[] best_tree = {1, 2, 3, 4, 5, 6, 7, 8};
+		int best_cost = -1;
+		int current_cost;
+		while (true) {
+			MT_sequence = increment_sequence(MT_sequence, 0);					//get next set of machine task pairs to try as a solution
+			MT_pairs = get_pairs(MT_sequence);									//format pairs into array with array[machine # -1] = task #)
+			current_cost = get_cost(MT_pairs, MT_penalties, MT_too_near);
+			if (current_cost != -1 && (current_cost < best_cost || best_cost == -1)) {
+				best_cost = current_cost;
+				for (byte i=0; i<8; i++) {
+					best_tree[i] = MT_pairs[i];
+				}
+			}
+			if (MT_sequence[0] == 8 && MT_sequence[1] == 7 && MT_sequence[2] == 6 && MT_sequence[3] == 5 && MT_sequence[4] == 4 && MT_sequence[5] == 3 && MT_sequence[6] == 2 && MT_sequence[7] == 1) {
+				break;
+			}
+		}
+		return best_tree;
+	}
+	
 	//get a possible tree
 	public static byte[] get_initial_tree(int[][] MT_penalties, int[][] MT_too_near) {
 		byte[] MT_pairs = {1, 2, 3, 4, 5, 6, 7, 8};								///array[machine # -1] = task #)
