@@ -12,7 +12,7 @@ abstract class tree {
 			MT_sequence = increment_sequence(MT_sequence, 0);					//get next set of machine task pairs to try as a solution
 			MT_pairs = get_pairs(MT_sequence);									//format pairs into array with array[machine # -1] = task #)
 			current_cost = get_cost(MT_pairs, MT_penalties, MT_too_near);
-			if (current_cost != -1 && (current_cost < best_cost || best_cost == -1)) {
+			if (current_cost != -1 && current_cost < best_cost || best_cost == -1) {
 				best_cost = current_cost;
 				for (byte i=0; i<8; i++) {
 					best_tree[i] = MT_pairs[i];
